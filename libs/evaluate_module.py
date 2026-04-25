@@ -48,6 +48,9 @@ def evaluate_model(models, test_loader, device):
         rel_errors : (M,)     relative L2 error per sample
     """
     model1, model2 = models[0], models[1]
+
+    model1.to(device)
+    model2.to(device)
     criterion = nn.MSELoss()
 
     params_all, phi_pred_all, phi_true_all = [], [], []

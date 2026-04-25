@@ -91,7 +91,7 @@ def trainer(models, train_loader, test_loader, config, logs, device):
     os.makedirs("./checkpoints", exist_ok=True)
     os.makedirs("./logs",        exist_ok=True)
 
-    logger = setup_logger(f"./logs/{config['log_path']}.log")
+    logger = setup_logger(f"./{config['log_path']}.log")
     logger.info("=" * 60)
     logger.info("Training started")
     logger.info(f"epochs       : {config['epochs']}")

@@ -25,23 +25,30 @@ def main():
     # ============================================================
     # Build train / test
     # ============================================================
-    train_pairs = build_train_pairs(TRAIN_CONFIG)
-    test_pairs  = build_test_pairs(TEST_CONFIG)
-
-    print(f"Train pairs : {len(train_pairs)}")
-    print(f"Test  pairs : {len(test_pairs)}")
-
-    train_data = build_dataset(train_pairs, PHYSICS_DOMAIN)
-    test_data  = build_dataset(test_pairs,  PHYSICS_DOMAIN)
-
-    print(f"\nTrain phi shape : {train_data['phi'].shape}")
-    print(f"Test  phi shape : {test_data['phi'].shape}")
-
-
-    save_hdf5( config["sol_name"], train_data, test_data, now)
-    print(f"\nSaved → config["sol_name"]")
-
     
+    if  not os.path.exists(config["sol_name"]):
+        print(f"[DATA] {config['sol_name']} not found → generating...")
+
+        train_pairs = build_train_pairs(TRAIN_CONFIG)
+        test_pairs  = build_test_pairs(TEST_CONFIG)
+
+        print(f"Train pairs : {len(train_pairs)}")
+        print(f"Test  pairs : {len(test_pairs)}")
+
+        train_data = build_dataset(train_pairs, PHYSICS_DOMAIN)
+        test_data  = build_dataset(test_pairs,  PHYSICS_DOMAIN)
+
+        print(f"\nTrain phi shape : {train_data['phi'].shape}")
+        print(f"Test  phi shape : {test_data['phi'].shape}")
+        
+
+        save_hdf5( config["sol_name"], train_data, test_data, now)
+        print(f"\nSaved → config['sol_name']")
+
+    else: 
+
+        print(f"[DATA] Found {config['sol_name']} → skip generation")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
@@ -97,8 +104,8 @@ def main():
 
         #params = np.concatenate([test_data['mu'][:, None], test_data['delta'][:, None]], axis = 1) 
       
-        plot_results(test_data['x'], params_all, phi_pred, phi_true,
-                 indices=None, save_path=None) 
+        plot_results(x_ref, params_all, phi_pred, phi_true,
+                 indices=None, save_path=config["save_path"]) 
 
 if __name__ == "__main__":
     main() 

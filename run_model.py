@@ -3,15 +3,16 @@ import torch
 import torch.nn as nn
 import libs
 from libs.data_gene import *
+from libs.config import * 
 from libs.module import LatentModel, Decoder
 from libs.train_module import trainer
 
 def main():
 
-    now = datetime.datetime.now()
-
+    #now = datetime.datetoime.now()
+    """
     config = {
-        "eq_name": libs.data_gene.eq_name,
+        "eq_name": config.eq_name,
         
         # model
         "hidden_dims":       [128, 128, 128],
@@ -38,19 +39,20 @@ def main():
         "output_sol_dim": 1,
       
     }
+    """
 
     # log path set after eq_name is defined
-    config["log_path"] = f"./logs/train_{config['eq_name']}_{now:%Y-%m-%d_%H%M%S}.log"
+    #config["log_path"] = f"./logs/train_{config['eq_name']}_{now:%Y-%m-%d_%H%M%S}.log"
 
     device   = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    sol_name = f"./data/solution_{config['eq_name']}.h5"
+    #sol_name = f"./data/solution_{config['eq_name']}.h5"
 
     print(f"Using device : {device}")
-    print(f"Loading data : {sol_name}")
+    print(f"Loading data : {config["sol_name"]}")
 
     # ── data ─────────────────────────────────────────────────
     x_ref, train_loader, test_loader = get_dataloaders(
-        sol_name, batch_size=config["batch_size"]
+        config["sol_name"], batch_size=config["batch_size"]
     )
 
     for params_batch, phi_batch in train_loader:
