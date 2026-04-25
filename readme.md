@@ -15,11 +15,17 @@ $$\Psi_{D2}(x, \mu) = \frac{3\mu}{\delta \left(1 + \sqrt{1 + \frac{9\mu}{2\delta
 ---
 
 ## Repository Structure
-├── libs
+├── libs                      
+    ├── config.py           # Configuration
     ├── data_gene.py        # Data generation and DataLoader  
     ├── module.py           # Model1, Model2 architecture
     ├── train_module.py     # Train / evaluate / trainer functions
-├── main.py                 # Main function
+    ├── evaluate_module.py  # Evaluate on the test data and plot the result
+├── main.py                 # Whole pipeline function
+├── Test.sub                # Run on whole pipeline in Mill 
+├── run_data.py             # Data generation pipeline
+├── run_model.py            # Train and Test model pipeline
+├── Test_separate.sub       # Run the seperate pipeline in Mill 
 ├── data/                   # generated .h5 files
 ├── checkpoints/            # saved model weights
 └── logs/                   # training log files
@@ -29,18 +35,23 @@ $$\Psi_{D2}(x, \mu) = \frac{3\mu}{\delta \left(1 + \sqrt{1 + \frac{9\mu}{2\delta
 ## Run the experiment 
 
 ### Full pipeline (data generation + training)
+- Local
 ```bash
 python generate_data.py    # run once, or when parameters change
 python train.py
 ```
+- Mill
+```bash
+sbatch Test.sub
+```
 
-or 
-
+### Separate pipeline 
+- Local
 ```bash
 python main.py
 ```
 
-### On the Mill 
+- Mill 
 ```bash
 sbatch Test.sub
 ```

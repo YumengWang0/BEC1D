@@ -100,7 +100,8 @@ def main():
             device       = device,
         )
     else: 
-        params_all, phi_pred, phi_true, rel_errors = evaluate_model(models, test_loader, device)
+        #params_all, phi_pred, phi_true, rel_errors = evaluate_model(models, test_loader, device)
+        params_all, phi_pred, phi_true, rel_errors = evaluate_model(models, test_loader, device, config["error_save_path"])
 
         #params = np.concatenate([test_data['mu'][:, None], test_data['delta'][:, None]], axis = 1) 
       

@@ -39,7 +39,7 @@ def load_model(checkpoint_path, config, device):
 # ============================================================
 # Evaluate
 # ============================================================
-def evaluate_model(models, test_loader, device):
+def evaluate_model(models, test_loader, device, error_save_path = None):
     """
     Returns
         params_all : (M, 2)   [mu, delta]
@@ -75,6 +75,12 @@ def evaluate_model(models, test_loader, device):
     # relative L2 error per sample
     rel_errors = np.linalg.norm(phi_pred - phi_true, axis=1) / \
                  np.linalg.norm(phi_true,             axis=1)
+
+    if error_save_path is not None: 
+        # save
+        np.save(error_save_path, rel_errors)
+        print(f"The relative L2 error for each parameter is stored")
+        
 
     avg_loss = total_loss / len(test_loader)
     print(f"Test MSE loss         : {avg_loss:.6f}")

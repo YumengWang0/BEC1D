@@ -6,40 +6,10 @@ from libs.data_gene import *
 from libs.config import * 
 from libs.module import LatentModel, Decoder
 from libs.train_module import trainer
+from libs.evaluate_module import *
 
 def main():
 
-    #now = datetime.datetoime.now()
-    """
-    config = {
-        "eq_name": config.eq_name,
-        
-        # model
-        "hidden_dims":       [128, 128, 128],
-        "latent_feature_dim": 16,
-        "n_latent":           64,
-        "hidden_conv_dims":  [256, 128, 64, 64, 32, 32],
-        "activation":         nn.ReLU,
-        "output_activation":  None,
-        "dropout":            0.1,
-
-        # training
-        "epochs":      5,
-        "epoch_save":  1,
-        "batch_size":  32,
-
-        # optimizer
-        "learning_rate": 1e-3,
-        "weight_decay":  1e-5,
-        "step_size":     1,
-        "gamma":         0.99,
-
-        # data / naming
-        "input_dim":      2,
-        "output_sol_dim": 1,
-      
-    }
-    """
 
     # log path set after eq_name is defined
     #config["log_path"] = f"./logs/train_{config['eq_name']}_{now:%Y-%m-%d_%H%M%S}.log"
@@ -79,15 +49,23 @@ def main():
     models = nn.ModuleList([model1, model2])
 
     # ── train ────────────────────────────────────────────────
-    trainer(
-        models       = models,
-        train_loader = train_loader,
-        test_loader  = test_loader,
-        config       = config,
-        logs         = None,
-        device       = device,
-    )
+    if config["model_train"]: 
+        trainer(
+            models       = models,
+            train_loader = train_loader,
+            test_loader  = test_loader,
+            config       = config,
+            logs         = None,           # replace with wandb.init() if needed
+            device       = device,
+        )
+    else: 
+        params_all, phi_pred, phi_true, rel_errors = evaluate_model(models, test_loader, device, config["error_save_path"])
 
+        #params = np.concatenate([test_data['mu'][:, None], test_data['delta'][:, None]], axis = 1) 
+      
+        plot_results(x_ref, params_all, phi_pred, phi_true,
+                 indices=None, save_path=config["save_path"]) 
+    
 
 if __name__ == "__main__":
     main()
