@@ -9,26 +9,34 @@ A data-driven surrogate model that learns the mapping from physical parameters $
 $$\Psi_{D2}(x, \mu) = \frac{3\mu}{\delta \left(1 + \sqrt{1 + \frac{9\mu}{2\delta^2}} \cosh\left(\sqrt{-2\mu}(x - x_0)\right)\right)}$$
 
 **Parameter constraints:**
-- $\mu < 0$ (chemical potential must be negative)
-- $|\delta| > 3\sqrt{-\mu/2}$ (required for a real-valued solution)
+- $\mu < 0$  
+- $\delta > \sqrt{-9\mu/2}$ 
 
 ---
 
 ## Repository Structure
-├── libs                      
-    ├── config.py           # Configuration
-    ├── data_gene.py        # Data generation and DataLoader  
-    ├── module.py           # Model1, Model2 architecture
-    ├── train_module.py     # Train / evaluate / trainer functions
-    ├── evaluate_module.py  # Evaluate on the test data and plot the result
-├── main.py                 # Whole pipeline function
-├── Test.sub                # Run on whole pipeline in Mill 
-├── run_data.py             # Data generation pipeline
-├── run_model.py            # Train and Test model pipeline
-├── Test_separate.sub       # Run the seperate pipeline in Mill 
-├── data/                   # generated .h5 files
-├── checkpoints/            # saved model weights
-└── logs/                   # training log files
+
+```
+.
+├── libs/                      # Core library modules
+│   ├── config.py              # Configuration settings (hyperparameters, paths)
+│   ├── data_gene.py           # Data generation and DataLoader utilities
+│   ├── module.py              # Model architectures (Model1, Model2)
+│   ├── train_module.py        # Training, evaluation, and trainer logic
+│   └── evaluate_module.py     # Testing and result visualization
+│
+├── main.py                    # End-to-end pipeline (data → train → evaluate)
+│
+├── run_data.py                # Standalone data generation pipeline
+├── run_model.py               # Standalone training + testing pipeline
+│
+├── Test.sub                   # Job script: full pipeline on Mill
+├── Test_separate.sub          # Job script: separate pipeline on Mill
+│
+├── data/                      # Generated datasets (.h5 files)
+├── checkpoints/               # Saved model weights
+├── logs/                      # Training and evaluation logs
+```
 
 ---
 
@@ -59,7 +67,6 @@ sbatch Test.sub
 ---
 
 ## Changing the Model
-
 The parameters changes accordding to the rquirement in the `config.py` file: 
 - `RANDOM_SEED`
 - `PHYSICS_DOMAIN` 
