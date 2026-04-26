@@ -174,3 +174,101 @@ def plot_results(x, params, phi_pred, phi_true,
         print(f"Figure saved → {save_path}")
 
     plt.show()
+    
+
+def plot_results_witherror(x, params, phi_pred, phi_true,
+                 indices=None, save_path=None):
+    """
+    Plot 4 samples: prediction vs ground truth + absolute error panel.
+
+    Args:
+        x          : (N,)   spatial grid
+        params     : (M, 2) [mu, delta]
+        phi_pred   : (M, N)
+        phi_true   : (M, N)
+        indices    : list of 4 indices to plot (default: spread across dataset)
+        save_path  : if given, saves figure
+    """
+    if indices is None:
+        M = phi_pred.shape[0]
+        indices = [0, M // 3, 2 * M // 3, M - 1]
+        print(indices)
+
+    plt.rcParams.update({
+        "font.family":    "serif",
+        "font.size":       11,
+        "axes.labelsize":  12,
+        "axes.titlesize":  11,
+        "legend.fontsize":  9,
+        "xtick.labelsize": 10,
+        "ytick.labelsize": 10,
+        "axes.linewidth":   0.8,
+        "lines.linewidth":  1.8,
+    })
+
+    colors = ["#2166ac", "#d6604d", "#4dac26", "#7b3294"]
+
+    # ── 2 cols × 4 rows, each sample = (main + error) stacked ──
+    fig = plt.figure(figsize=(11, 10))
+    gs  = fig.add_gridspec(
+        nrows=4, ncols=2,          # 2 rows per sample × 2 columns
+        hspace=0.08,               # tight gap between main & error panels
+        wspace=0.35,
+    )
+
+    # map flat index → (col, row_pair)
+    # sample 0 → col 0, rows 0-1  |  sample 1 → col 1, rows 0-1
+    # sample 2 → col 0, rows 2-3  |  sample 3 → col 1, rows 2-3
+    layout = [(0, 0), (1, 0), (0, 2), (1, 2)]   # (col, start_row)
+
+    for i, (idx, color) in enumerate(zip(indices, colors)):
+        col, row = layout[i]
+
+        ax_main = fig.add_subplot(gs[row,     col])
+        ax_err  = fig.add_subplot(gs[row + 1, col], sharex=ax_main)
+
+        mu    = params[idx, 0]
+        delta = params[idx, 1]
+
+        pred_sq = phi_pred[idx] ** 2
+        true_sq = phi_true[idx] ** 2
+        abs_err = np.abs(pred_sq - true_sq)
+
+        # ── main panel ───────────────────────────────────────
+        ax_main.plot(x, true_sq, color=color,
+                     linestyle="-",  label="Analytical", linewidth=1.8)
+        ax_main.plot(x, pred_sq, color="k",
+                     linestyle="--", label="Surrogate",  linewidth=1.4, alpha=0.85)
+
+        ax_main.set_title(
+            rf"$\mu={mu:.4f},\ \delta={delta:.3f}$", pad=5
+        )
+        ax_main.set_xlim(x[0], x[-1])
+        ax_main.set_ylim(bottom=0)
+        ax_main.set_ylabel(r"$|\Psi|^2$")
+        ax_main.legend(frameon=False)
+        ax_main.tick_params(labelbottom=False)   # hide x-ticks on main
+
+        # ── error panel ──────────────────────────────────────
+        ax_err.fill_between(x, abs_err, alpha=0.25, color=color)
+        ax_err.plot(x, abs_err, color=color, linewidth=1.2)
+
+        ax_err.set_xlim(x[0], x[-1])
+        ax_err.set_ylim(bottom=0)
+        ax_err.set_xlabel(r"$x$")
+        ax_err.set_ylabel(r"$|{{\rm err}}|$", fontsize=10)
+        ax_err.tick_params(labelsize=9)
+        ax_err.yaxis.set_major_formatter(
+            plt.FuncFormatter(lambda v, _: f"{v:.1e}")
+        )
+
+    fig.suptitle(
+        r"Surrogate vs Analytical Droplet Solution $|\phi_{D2}|^2$",
+        fontsize=13, y=1.01
+    )
+
+    if save_path:
+        fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Figure saved → {save_path}")
+
+    plt.show()
