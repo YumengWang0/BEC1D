@@ -63,8 +63,7 @@ config = {
 
     # data
     "input_dim": 2,
-    "output_sol_dim": 1, 
-
+    "output_sol_dim": 1
 
 } 
 

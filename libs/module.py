@@ -40,10 +40,21 @@ class Decoder(nn.Module):
         self.model = nn.Sequential(*layers)
         print(self.model)
 
+
+    def enforce_symmetry(self, y):
+        """
+        y: (B, C, L)
+        """
+        y_flip = torch.flip(y, dims=[-1])   # reverse spatial dimension
+        return 0.5 * (y + y_flip)
+
+
     def forward(self, x):
         output = self.model(x)
-        return output.permute(0, 2, 1).squeeze(-1)
-     
+        output_symmetry = self.enforce_symmetry(output) 
+        
+         
+        return output_symmetry.permute(0, 2, 1).squeeze(-1)
     
 # ============================================================
 # Latent model: Mapping from the parameters 
