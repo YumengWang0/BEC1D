@@ -39,7 +39,7 @@ def load_model(checkpoint_path, config, device):
 # ============================================================
 # Evaluate
 # ============================================================
-def evaluate_model(models, test_loader, device, error_save_path = None):
+def evaluate_model(models, test_loader,  device, model_path, error_save_path = None):
     """
     Returns
         params_all : (M, 2)   [mu, delta]
@@ -47,10 +47,21 @@ def evaluate_model(models, test_loader, device, error_save_path = None):
         phi_true   : (M, N)   ground truth
         rel_errors : (M,)     relative L2 error per sample
     """
+
+    checkpoint = torch.load(model_path, map_location=device)
+
+    models[0].load_state_dict(checkpoint["model1"])
+    models[1].load_state_dict(checkpoint["model2"])
     model1, model2 = models[0], models[1]
+
+
 
     model1.to(device)
     model2.to(device)
+    
+    model1.eval()
+    model2.eval()
+    
     criterion = nn.MSELoss()
 
     params_all, phi_pred_all, phi_true_all = [], [], []
@@ -87,7 +98,6 @@ def evaluate_model(models, test_loader, device, error_save_path = None):
     print(f"Mean relative L2 error: {rel_errors.mean():.4f} ± {rel_errors.std():.4f}")
 
     return params_all, phi_pred, phi_true, rel_errors
-
 
 # ============================================================
 # Plot  (paper quality, 4 samples)

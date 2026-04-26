@@ -70,5 +70,6 @@ config = {
 
 config["log_path"] = f"./logs/train_{config['eq_name']}_{now:%Y-%m-%d_%H%M%S}.log"
 config["sol_name"] = f"./data/solution_{config['eq_name']}.h5"
-config["save_path"] = f"./result/{config['eq_name']}_sampled_plot.png" 
+config["save_path"] = f"./result/{config['eq_name']}_sampled_plot.png"
+config["model_save_path"] = f"./checkpoints/best_model.pt" 
 config["error_save_path"] = f"./result/{config['eq_name']}_RelL2.npy" 

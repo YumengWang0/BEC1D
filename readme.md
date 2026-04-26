@@ -42,6 +42,11 @@ $$\Psi_{D2}(x, \mu) = \frac{3\mu}{\delta \left(1 + \sqrt{1 + \frac{9\mu}{2\delta
 
 ## Run the experiment 
 
+### Build enviroment 
+```bash 
+pip install -r requirements.txt
+```
+
 ### Full pipeline (data generation + training)
 - Local
 ```bash

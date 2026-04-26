@@ -18,7 +18,7 @@ def main():
     #sol_name = f"./data/solution_{config['eq_name']}.h5"
 
     print(f"Using device : {device}")
-    print(f"Loading data : {config["sol_name"]}")
+    print(f"Loading data : {config['sol_name']}")
 
     # ── data ─────────────────────────────────────────────────
     x_ref, train_loader, test_loader = get_dataloaders(
