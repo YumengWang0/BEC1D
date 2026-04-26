@@ -66,7 +66,7 @@ python main.py
 
 - Mill 
 ```bash
-sbatch Test.sub
+sbatch Test_separate.sub
 ```
 
 ---
@@ -78,6 +78,7 @@ The parameters changes accordding to the rquirement in the `config.py` file:
 - `TRAIN_CONFIG` 
 - `TEST_CONFIG` 
 - `config` 
+If more hyperparameters is needy, add in the config file.
 
 
 ### LatentModel  (`libs/module.py`)
