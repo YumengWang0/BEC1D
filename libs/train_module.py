@@ -56,7 +56,7 @@ def train(models, dataloader, optimizer, criterion, device):
        
         loss = criterion(pred, y)
         loss.backward()
-        print(loss.item(), "loss-----------")
+  
         optimizer.step()
         total_loss += loss.item()
 

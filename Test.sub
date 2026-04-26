@@ -11,8 +11,7 @@
 echo "State training the model "
 echo "==="*50 
 
-python run_data.py 
-python run_model.py 
+python main.py
 
 echo "==="*50 
 echo "End training the model "
