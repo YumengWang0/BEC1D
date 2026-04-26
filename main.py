@@ -105,8 +105,8 @@ def main():
 
         #params = np.concatenate([test_data['mu'][:, None], test_data['delta'][:, None]], axis = 1) 
       
-        plot_results(x_ref, params_all, phi_pred, phi_true,
-                 indices=None, save_path=config["save_path"]) 
+        plot_results_witherror(x_ref, params_all, phi_pred, phi_true,
+                 indices=None, save_path=config["save_path_witherror"]) 
 
 if __name__ == "__main__":
     main() 
