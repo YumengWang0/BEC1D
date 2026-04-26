@@ -116,7 +116,7 @@ def trainer(models, train_loader, test_loader, config, logs, device):
 
     best_val = float("inf")
 
-    for epoch in range(config["epochs"]):
+    for epoch in range(1 + config["epochs"]):
 
         # ── train ────────────────────────────────────────────
         train_loss = train(models, train_loader, optimizer, criterion, device)

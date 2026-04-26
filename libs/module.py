@@ -9,58 +9,41 @@ import torch.nn as nn
 # Decoder model, decoded from the latent representation 
 # ============================================================
 
-class Decoder(nn.Module): 
+ 
+class Decoder(nn.Module):
     
-    def __init__(self,  latent_dim, hidden_conv_dims, output_sol_dim):
+    def __init__(self, latent_dim, hidden_conv_dims, output_sol_dim):
         super().__init__()
-        self.latent_dimension = latent_dim 
-        
-    
-        dims = [latent_dim] + hidden_conv_dims
+        self.latent_dimension = latent_dim
+
+        dims = [latent_dim] + hidden_conv_dims  # 需要 8 个间隔 → len=9
 
         layers = []
-
         for i in range(len(dims) - 1):
+            is_last_upsample = (i == len(dims) - 2)  # 最后一个上采样层
+
             layers.append(
                 nn.ConvTranspose1d(
                     dims[i],
                     dims[i + 1],
                     kernel_size=4,
                     stride=2,
-                    padding=1
+                    padding=1,
+                    output_padding=1 if is_last_upsample else 0  # ← 只在最后加
                 )
             )
             layers.append(nn.ReLU())
 
-       
         layers.append(
-            nn.Conv1d(dims[-1],  output_sol_dim, kernel_size=1, stride = 1 ), 
-            #nn.ReLU(),
-            #nn.Conv1d(int( dims[-1]//2 ) , output_sol_dim, kernel_size=2, stride = 2 )] 
+            nn.Conv1d(dims[-1], output_sol_dim, kernel_size=1)
         )
-
         self.model = nn.Sequential(*layers)
-
         print(self.model)
-    
-    def enforce_symmetry(self, y):
-        """
-        y: (B, C, L)
-        """
-        y_flip = torch.flip(y, dims=[-1])   # reverse spatial dimension
-        return 0.5 * (y + y_flip)
-    
-        
+
     def forward(self, x):
         output = self.model(x)
-        # enforce the symmetry 
-        
-        output_symmetry = self.enforce_symmetry(output) 
-        
-         
-        return output_symmetry.permute(0, 2, 1).squeeze(-1)
-    
-    
+        return output.permute(0, 2, 1).squeeze(-1)
+     
     
 # ============================================================
 # Latent model: Mapping from the parameters 

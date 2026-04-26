@@ -10,7 +10,7 @@ from libs.evaluate_module import *
 
 def main():
 
-
+    
     # log path set after eq_name is defined
     #config["log_path"] = f"./logs/train_{config['eq_name']}_{now:%Y-%m-%d_%H%M%S}.log"
 
@@ -19,7 +19,8 @@ def main():
 
     print(f"Using device : {device}")
     print(f"Loading data : {config['sol_name']}")
-
+    
+    
     # ── data ─────────────────────────────────────────────────
     x_ref, train_loader, test_loader = get_dataloaders(
         config["sol_name"], batch_size=config["batch_size"]
