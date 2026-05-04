@@ -68,10 +68,10 @@ def evaluate_model(x_ref, models, test_loader, checkpoint_path, logger,  device,
     #model1, model2 = load_model(checkpoint_path, config, device)
    
     ckpt = torch.load(checkpoint_path, map_location=device)
+
+    model1, model2 = models[0].to(device), models[1].to(device)
     model1.load_state_dict(ckpt["model1"])
     model2.load_state_dict(ckpt["model2"])
-    model1, model2 = models[0].to(device), models[1].to(device)
-    
     model1.eval()
     model2.eval()
 
