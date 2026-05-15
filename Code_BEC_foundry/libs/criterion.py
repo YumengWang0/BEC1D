@@ -8,31 +8,48 @@ import torch
 import torch.nn as nn
 
 
-def mse_loss(pred, target):
-    return nn.functional.mse_loss(pred, target)
+ 
+class RelLpLoss(torch.nn.modules.loss._Loss):
+    def __init__(self, p):
+        super(RelLpLoss, self).__init__()
+        self.p = p
 
-# Mean relative error  
-def relative_l2_loss(pred, target):
-    """
-    Mean relative L2 loss over the batch.
-    loss = mean( ||pred - target||_2 / ||target||_2 )
-    pred, target : (B, N)
-    """
-    num = (pred - target).norm(dim=1)        # (B,)
-    den = target.norm(dim=1).clamp(min=1e-8) # (B,)
-    return (num / den).mean() 
+    def forward(self, pred, target):
+        error = torch.sum(abs(pred - target) ** self.p, tuple(range(1, len(pred.shape)))) ** (1/self.p)
+        target = torch.sum(abs(target) ** self.p, tuple(range(1, len(pred.shape)))) ** (1/self.p)
+        rloss = torch.mean(error / target)
+        return rloss
+
+
+class LpLoss(torch.nn.modules.loss._Loss):
+    def __init__(self, p):
+        super(LpLoss, self).__init__()
+        self.p = p
+
+    def forward(self, pred, target):
+        error = torch.mean(abs(pred - target) ** self.p, tuple(range(1, len(pred.shape)))) ** (1/self.p)
+        loss = torch.mean(error)
+        return loss
+
+
 
 def get_criterion(config):
     """
     Returns criterion(pred, target) callable from config["criterion"].
     """
     # If not given the criterion, use mse 
-    name = config.get("criterion", "mse")
+    name = config.get("criterion", "relative_l2")
+
+
     
     if name == "mse":
+        mse_loss = LpLoss(p = 2)
         return mse_loss
+
     elif name == "relative_l2":
+        relative_l2_loss = RelLpLoss(p = 2)
         return relative_l2_loss
+        
     else:
         raise ValueError(
             f"Unknown criterion: {name!r}. Choose 'mse' or 'relative_l2'."

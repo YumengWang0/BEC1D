@@ -44,14 +44,19 @@ def delta_min(mu):
     return np.sqrt(-4.5 * mu) + 0.00005
 
 
+
 def build_train_pairs(cfg):
-    mu_list  = np.linspace(cfg["mu_left"], cfg["mu_right"], cfg["N_mu"])
-    n_deltas = 2 * np.arange(1, cfg["N_mu"] + 1)
+    mu_list = np.linspace(cfg["mu_left"], cfg["mu_right"], cfg["N_mu"])
+    step = cfg.get("delta_step", 0.01)
+
     pairs = []
-    for mu, n_d in zip(mu_list, n_deltas):
-        for delta in np.linspace(delta_min(mu), cfg["delta_max"], n_d):
+    for mu in mu_list:
+        d_lo = delta_min(mu)
+        n_d  = max(5, round((cfg["delta_max"] - d_lo) / step) + 1)
+        for delta in np.linspace(d_lo, cfg["delta_max"], n_d):
             pairs.append([mu, delta])
     return pairs
+
 
 
 def build_test_pairs(cfg):

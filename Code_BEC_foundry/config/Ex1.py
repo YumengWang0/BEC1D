@@ -45,7 +45,7 @@ config = {
     "eq_name":    EQ_NAME,
     "model_train": False,
     # Loss function: "mse" | "relative_l2"
-    "criterion": "mse",
+    "criterion": "relative_l2",
 
 
     # Architecture
