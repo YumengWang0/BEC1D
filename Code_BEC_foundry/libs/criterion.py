@@ -40,8 +40,6 @@ def get_criterion(config):
     # If not given the criterion, use mse 
     name = config.get("criterion", "relative_l2")
 
-
-    
     if name == "mse":
         mse_loss = LpLoss(p = 2)
         return mse_loss

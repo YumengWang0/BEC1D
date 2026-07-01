@@ -48,7 +48,7 @@ def main():
     print(f"Mode        : {'train' if config['model_train'] else 'evaluate'}")
 
     # ── data ──────────────────────────────────────────────────
-    x_ref, train_loader, test_loader, param_names = get_dataloaders(
+    x_ref, train_loader, val_loader, param_names = get_dataloaders(
         config["sol_name"], batch_size=config["batch_size"]
     )
 
@@ -60,7 +60,7 @@ def main():
 
     logger = setup_logger(config["log_path"])
     
-    models = load_model(config, device)
+    models = load_model(config, device, learn_boundary=config["learn_boundary"])
       
     # ── models ────────────────────────────────────────────────
     if config["model_train"]:
@@ -68,10 +68,11 @@ def main():
         trainer(
             models       = models,
             train_loader = train_loader,
-            test_loader  = test_loader,
+            val_loader  = val_loader,
             config       = config,
             logger       = logger,
             device       = device,
+      
         )
         # reload best weights for evaluation
         
@@ -84,6 +85,7 @@ def main():
             config["model_save_path"], 
             logger,  
             device, 
+            learn_boundary=config["learn_boundary"],
             error_save_path=config["error_save_path"],
         )
 

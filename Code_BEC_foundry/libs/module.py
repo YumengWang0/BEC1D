@@ -144,3 +144,24 @@ class LatentModel(nn.Module):
         output = output.view(-1, self.latent_feature_dim, self.n_latent)
         return output 
 
+
+class MLP_mapping(nn.Module):
+    def __init__(self, input_dim, hidden_dims, output_sol_dim):
+        super(MLP_mapping, self).__init__()
+
+        layers = []
+        prev_dim = input_dim
+
+        # hidden layers
+        for h in hidden_dims:
+            layers.append(nn.Linear(prev_dim, h))
+            layers.append(nn.ReLU())
+            prev_dim = h
+
+        # output layer
+        layers.append(nn.Linear(prev_dim, output_sol_dim))
+
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.net(x)

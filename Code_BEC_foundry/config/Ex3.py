@@ -1,5 +1,7 @@
 """
-configs/Ex1.py  —  Experiment 1: analytical droplet solution
+configs/Ex3.py  —  
+Experiment 3: Add the MLP_mapping for boundary values. 
+
 """
 import os
 import datetime
@@ -8,7 +10,7 @@ import torch.nn as nn
 now = datetime.datetime.now()
 
 # Equation name  
-EQ_NAME     = "Ex1"
+EQ_NAME     = "Ex3"
 
 # How you select the data 
 DATA_SOURCE = "analytical"
@@ -17,7 +19,7 @@ DATA_SOURCE = "analytical"
 PHYSICS_DOMAIN = {
     "x_a": -20,
     "x_b":  20,
-    "N":    4097,
+    "N":    128,
     "x0":   0,
 }
 
@@ -55,9 +57,12 @@ config = {
     "hidden_conv_dims":   [256, 128, 128, 64, 64, 32, 32],
     "activation":         nn.ReLU,
     "output_activation":  None,
-    "learn_boundary":      False,
-     "complex_solution":            False,  # The output solution is complex-valued, represented as a vector of two elements (real and imaginary parts)    
+    
+    "learn_boundary":      True,
+    "boundary_hidden_dims": [128, 128, 128],
+    "complex_solution":    False,  # The output solution is complex-valued, represented as a vector of two elements (real and imaginary parts)    
  
+
     # Training
     "epochs":      2000,
     "epoch_save":  200,
@@ -70,10 +75,9 @@ config = {
     "weight_decay":  1e-5,
     "gamma":         0.998,
 
-  
     # Change unless predict more than one solution
     "input_dim":      len(PARAM_NAMES),
-    "output_sol_dim": 1, ###
+    "output_sol_dim": 1, ### Revise here for image and real 
     "output_size" : PHYSICS_DOMAIN["N"]
 }
 

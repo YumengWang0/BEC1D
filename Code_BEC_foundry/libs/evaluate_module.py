@@ -1,34 +1,39 @@
+from logging import config
+
 import numpy as np
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from libs.module import LatentModel, Decoder
+from libs.module import LatentModel, Decoder, MLP_mapping
 
 
-def integrate_phi_squared(phi, x_ref):
+def integrate_phi_squared(phi, x_ref, complex=False):
     """
     Compute ∫ φ²(x) dx for each sample using the trapezoidal rule.
 
     Parameters
     ----------
-    phi   : (M, N)  snapshots
-    x_ref : (N,)    spatial grid (can be non-uniform)
+    phi     : (M, N) or (M, N, 2)  snapshots
+    x_ref   : (N,)                  spatial grid (can be non-uniform)
+    complex : bool                  if True, sum over last axis before integrating
 
     Returns
     -------
     integral : (M,)  ∫ φ² dx per sample
     """
-    phi_sq   = phi ** 2                              # (M, N)
-    integral = np.trapz(phi_sq, x=x_ref, axis=1)    # (M,)
+    phi_sq = np.abs(phi)**2                              # (M, N) or (M, N, 2)
+    if complex:
+        phi_sq = np.sum(phi_sq, axis=-1)                # (M, N)
+    integral = np.trapz(phi_sq, x=x_ref, axis=1)        # (M,)
     return integral
-
 
 
 # ============================================================
 # Load model from checkpoint
 # If 2D model is needy, can change the load_model only  
 # ============================================================
-def load_model(config, device):
+
+def load_model(config, device ):
     model1 = LatentModel(
         input_dim          = config["input_dim"],
         hidden_dims        = config["hidden_dims"],
@@ -41,20 +46,67 @@ def load_model(config, device):
     model2 = Decoder(
         latent_dim       = config["latent_feature_dim"],
         hidden_conv_dims = config["hidden_conv_dims"],
-        output_sol_dim   = config["output_sol_dim"],
+        output_sol_dim   = config["output_sol_dim"], # output_sol_dim =2 
         output_size = config["output_size"]
     ).to(device)
 
-    models = nn.ModuleList([model1, model2])
+    models = [model1, model2]
+
+    if config["learn_boundary"]:
+        model3 = MLP_mapping( 
+                          input_dim = config["input_dim"],
+                          hidden_dims = config["boundary_hidden_dims"],    
+                          output_sol_dim = config["output_sol_dim"]).to(device)
+        models.append(model3)
+                
+    models = nn.ModuleList(models)
+        
     return models
  
+ 
+
+def load_checkpoint_models(models, checkpoint_path, device, learn_boundary=False):
+    """
+    Load model weights from checkpoint.
+
+    Parameters
+    ----------
+    models : list[nn.Module]
+        [model1, model2] or [model1, model2, model3]
+    checkpoint_path : str
+    device : torch.device
+    learn_boundary : bool
+
+    Returns
+    -------
+    models : list[nn.Module]
+        loaded models in eval mode
+    """
+
+    ckpt = torch.load(checkpoint_path, map_location=device)
+
+    # move models to device
+    models = [m.to(device) for m in models]
+
+    # load state dicts
+    models[0].load_state_dict(ckpt["model1"])
+    models[1].load_state_dict(ckpt["model2"])
+
+    if learn_boundary:
+        if len(models) < 3:
+            raise ValueError("learn_boundary=True but model3 not provided in models list")
+
+        models[2].load_state_dict(ckpt["model3"])
+
+    return models
+
 
 # ============================================================
 # Evaluate
 # NOTE: rel_errors is ALWAYS standard relative L2.
 #       It is independent of whatever criterion was used during training.
 # ============================================================
-def evaluate_model(x_ref, models, test_loader, checkpoint_path, logger,  device, error_save_path=None):
+def evaluate_model(x_ref, models, test_loader, checkpoint_path, logger,  device, learn_boundary=False, complex = False, error_save_path=None):
     """
     
     Returns
@@ -66,21 +118,26 @@ def evaluate_model(x_ref, models, test_loader, checkpoint_path, logger,  device,
     The checkpoint path can choose the best model or the last model. 
     """
     #model1, model2 = load_model(checkpoint_path, config, device)
-   
-    ckpt = torch.load(checkpoint_path, map_location=device)
 
-    model1, model2 = models[0].to(device), models[1].to(device)
-    model1.load_state_dict(ckpt["model1"])
-    model2.load_state_dict(ckpt["model2"])
-    model1.eval()
-    model2.eval()
+    models = load_checkpoint_models(models, checkpoint_path, device, learn_boundary=False)
+    
+    models[0].eval()
+    models[1].eval()
 
+    model1, model2 = models[0], models[1]
+
+    if learn_boundary:
+        models[2].eval()
+        model3 = models[2]
+      
     params_list, pred_list, true_list = [], [], []
 
     with torch.no_grad():
         for params, phi in test_loader:
             params, phi = params.to(device), phi.to(device)
             pred        = model2(model1(params))
+            if learn_boundary:
+                pred = pred + model3(params) 
             params_list.append(params.cpu().numpy())
             pred_list.append(pred.cpu().numpy())
             true_list.append(phi.cpu().numpy())
@@ -97,8 +154,8 @@ def evaluate_model(x_ref, models, test_loader, checkpoint_path, logger,  device,
     logger.info(f"Mean rel. L2 error : {rel_errors.mean():.4f} ± {rel_errors.std():.4f}")
     logger.info(f"Max  rel. L2 error : {rel_errors.max():.4f}")
 
-    phi_norm_pred = integrate_phi_squared(phi_pred, x_ref)
-    phi_norm_true = integrate_phi_squared(phi_true, x_ref)
+    phi_norm_pred = integrate_phi_squared(phi_pred, x_ref, complex = complex)
+    phi_norm_true = integrate_phi_squared(phi_true, x_ref, complex = complex)
     phi_error = np.abs( phi_norm_pred -  phi_norm_true )
     
     logger.info(f"Phi predict norm: {phi_norm_pred.mean():.4f}± {phi_norm_pred.std():.4f} ")
@@ -117,6 +174,7 @@ def evaluate_model(x_ref, models, test_loader, checkpoint_path, logger,  device,
         logger.info(f"Results saved → {error_save_path}")
 
     return params_all, phi_pred, phi_true, rel_errors
+
 
 
 # ============================================================
@@ -141,7 +199,7 @@ def _param_title(params_row, param_names):
     return ",\\ ".join(parts)
 
 
-def plot_results_witherror(x, params, phi_pred, phi_true,
+def plot_results_witherror(x, params, phi_pred, phi_true, complex= False,
                            param_names=None, indices=None, save_path=None):
     _plot_style()
     if param_names is None:
@@ -163,8 +221,12 @@ def plot_results_witherror(x, params, phi_pred, phi_true,
         if ax_err_ref is None:
             ax_err_ref = ax_err
 
+
         pred_sq = phi_pred[idx] ** 2
         true_sq = phi_true[idx] ** 2
+        if complex:
+            pred_sq = np.sum(phi_pred[idx]**2, axis=-1)
+            true_sq = np.sum(phi_true[idx]**2, axis=-1)
         abs_err = np.abs(pred_sq - true_sq)
 
         ax_main.plot(x, true_sq, color=color, ls="-",  label="Reference")
@@ -188,3 +250,4 @@ def plot_results_witherror(x, params, phi_pred, phi_true,
         fig.savefig(save_path, dpi=300, bbox_inches="tight")
         print(f"Saved → {save_path}")
     plt.show()
+
