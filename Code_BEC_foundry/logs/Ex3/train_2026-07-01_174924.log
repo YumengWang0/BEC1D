@@ -1,7 +1,0 @@
-2026-07-01 17:49:44 | Mean rel. L2 error : 0.9062 ± 0.0219
-2026-07-01 17:49:44 | Max  rel. L2 error : 0.9788
-2026-07-01 17:49:44 | Phi predict norm: 0.0261± 0.0060 
-2026-07-01 17:49:44 | Phi true norm: 0.0261± 0.0060 
-2026-07-01 17:49:44 | Phi error norm: 1.0022± 0.4167 
-2026-07-01 17:49:44 | Phi error norm maximum: 1.8531
-2026-07-01 17:49:44 | Results saved → ./result/Ex3/RelL2.npz
